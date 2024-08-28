@@ -1,0 +1,12 @@
+productName: "eric-oss-byos-buildmanager"
+productNumber: "CXP 904 3314"
+images:
+  eric-oss-byos-buildmanager:
+    productName: "eric-oss-byos-buildmanager"
+    productNumber: "CXP 904 3314"
+    registry: "armdocker.rnd.ericsson.se"
+    # Note: recommended to make the value a template and use helm-package script from release automation builder to replace at build time, e.g. repoPath: "MAIN_IMAGE_1.0.0-34"
+    repoPath: "proj-eric-oss-restsim/proj-eric-oss-restsim-ci-internal"
+    name: "eric-oss-byos-buildmanager"
+    # Note: recommended to make the value a template and use helm-package script from release automation builder to replace at build time, e.g. tag: "MAIN_IMAGE_proj-eric-oss-restsim/proj-eric-oss-restsim-ci-internal"
+    tag: "1.0.0-74"

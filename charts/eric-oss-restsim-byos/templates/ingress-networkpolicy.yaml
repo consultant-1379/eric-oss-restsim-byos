@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "eric-oss-byos-buildmanager.name" . }}-postgres-policy
+  labels:
+    {{- include "eric-oss-byos-buildmanager.labels" . | indent 4 }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: eric-oss-byos-buildmanager
+  policyTypes:
+  - Ingress
+  ingress:
+    - {}

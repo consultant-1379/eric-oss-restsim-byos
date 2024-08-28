@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eric-oss-byos-postgres-config
+  labels:
+    app: byos-postgres
+    chart: {{ template "eric-oss-byos-buildmanager.chart" . }}
+{{- include "eric-oss-byos-buildmanager.labels" . | nindent 4 }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | nindent 4 }}
+data:
+  POSTGRES_DB: restsim
+  POSTGRES_USER: restsim
+  POSTGRES_PASSWORD: restsim

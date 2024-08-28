@@ -1,0 +1,45 @@
+#
+# COPYRIGHT Ericsson 2021
+#
+# The copyright to the computer program(s) herein is the property of
+# Ericsson Inc. The programs may be used and/or copied only with written
+# permission from Ericsson Inc. or in accordance with the terms and
+# conditions stipulated in the agreement/contract under which the
+# program(s) have been supplied.
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+  labels:
+    app: {{ template "eric-oss-byos-buildmanager.name" . }}
+    chart: {{ template "eric-oss-byos-buildmanager.chart" . }}
+{{- include "eric-oss-byos-buildmanager.labels" . | nindent 4 }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | nindent 4 }}
+data:
+  data.conf: |
+    DB_NAME: {{ .Values.database.name }}
+    DB_HOST: {{ .Values.database.host | quote }}
+    DB_PORT: {{ .Values.database.port | quote }}
+    DB_USER: {{ .Values.database.user }}
+    DB_PASSWORD: {{ .Values.database.password }}
+    CONNECT_AFTER: {{ .Values.database.timeout }}
+    CONNECT_REATTEMPTS: {{ .Values.database.retries }}
+    MIMLOCATION:{{ .Values.modeldownload.mimlocation }}
+    MIMLIST: {{ .Values.modeldownload.mimlist }}
+    LOCAL_MIMLOCATION: {{ .Values.modeldownload.local_mimlocation}}
+    LOCAL_MIMLIST: {{ .Values.modeldownload.local_mimlist}}
+    REMOTE_MIMLOCATION: {{ .Values.modeldownload.remote_mimlocation}}
+    REMOTE_MIMLIST: {{ .Values.modeldownload.remote_mimlist }}
+    DEPLOYMENT: {{ .Values.deployment.name }}
+    COOKIETIME: {{ .Values.cookietime.cookietimeout }}
+    OPENAPI_LINK: {{ .Values.openapi.urlLink }}
+    CENTRAL_DBNAME:  {{ .Values.centralDatabase.name }}
+    CENTRAL_DBHOST:  {{ .Values.centralDatabase.host | quote }}
+    CENTRAL_DBPORT:  {{ .Values.centralDatabase.port | quote }}
+    CENTRAL_DBUSER:  {{ .Values.centralDatabase.user }}
+    CENTRAL_DBPASSWORD:  {{ .Values.centralDatabase.password }}
+
+  # application.properties: |
+  #   import.response.error.count=0

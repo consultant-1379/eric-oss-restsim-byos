@@ -1,0 +1,7 @@
+{{- define "eric-oss-byos-buildmanager.product-labels" -}}
+app.kubernetes.io/name: "{{ template "eric-oss-byos-buildmanager.name" . }}"
+app.kubernetes.io/version: "{{ template "eric-oss-byos-buildmanager.version" . }}"
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+app.kubernetes.io/instance: {{ include "eric-oss-byos-buildmanager.name" . | quote }}
+helm.sh/chart: "{{ template "eric-oss-byos-buildmanager.chart" . }}"
+{{- end -}}

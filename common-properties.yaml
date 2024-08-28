@@ -1,0 +1,12 @@
+modelVersion: 2.0
+
+env:
+  - IMAGE_SUB_REPOPATH (default=)
+
+properties:
+  - image-dev-repopath: proj_oss_releases/enm
+  - helm-client-version: 3.6.3
+  - helm-unittest-version: 0.2.6
+  - cbos-version: 3.45.0-15
+  - bob-gobuilder-version: 4.37.0
+  - helm-chart-name: restsim-byos

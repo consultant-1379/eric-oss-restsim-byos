@@ -1,0 +1,217 @@
+# Default values for eric-catfacts-fact-finder.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+modelVersion: 2.0
+
+properties:
+  - module: server_scripting
+
+module: byos_interface
+
+persistentVolumeClaim:
+  size: 5Gi
+
+networkPolicy:
+  enabled: true
+
+global:
+ networkPolicy: 
+  enabled: true
+#  timezone: UTC
+ registry:
+  imagePullPolicy:
+#    url: armdocker.rnd.ericsson.se
+#  # Secret must be manually created in the namespace, no default value
+ pullSecret:
+#  security:
+#    tls:
+#      enabled: true
+#    policyBinding:
+#      create: false
+#    policyReferenceMap:
+#      default-restricted-security-policy: "default-restricted-security-policy"
+#
+productInfo:
+  # R-State of the product. R State should match helm chart version (3.1.0 -> R2A)
+  # To automate it when packaging the helm chart rstate can be generated
+  # and below value replaced with correct R-Statei by e.g. Bob
+  rstate: R1A
+
+# imageCredentials:
+#   repoPath: REPO_PATH
+#   pullPolicy: IfNotPresent
+#   registry:
+#     url:
+
+imageCredentials:
+  # repoPath include the image path relative to the registry url, excluding image name
+  pullSecret:
+  mainImage:
+    repoPath:
+    registry:
+      imagePullPolicy:
+      url:
+
+# images
+images:
+  restsim:
+    name: eric-oss-byos-buildmanager
+    tag:
+
+
+# pullSecret:
+
+
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+database:
+  name: restsim
+  port: 5432
+  user: restsim
+  password: restsim
+  host: eric-oss-byos-postgres
+  retries: 12
+  timeout: 10
+
+centralDatabase:
+  name: restsim_portal
+  port: 5432 
+  user: restsim 
+  password: restsim
+  host: 214.6.22.84 
+
+modeldownload:
+  mimlocation: local
+  mimlist: local
+  local_mimlocation: data/server-scripting/
+  local_mimlist: data/server-scripting/mimlink.html
+  remote_mimlocation: https://netsim.seli.wh.rnd.internal.ericsson.com/restsim/
+  remote_mimlist: https://netsim.seli.wh.rnd.internal.ericsson.com/restsim/
+
+deployment:
+  name: ""
+
+openapi:
+  urlLink: "https://arm901-eiffel004.athtem.eei.ericsson.se:8443/nexus/content/repositories/simnet/com/ericsson/restsim/spec/self-service-4.yaml"
+
+cookietime:
+   cookietimeout: 1200000
+
+#sleeptime:
+ #   sleeptimedelay: 60
+
+replicaCount: 1
+
+dataset:
+  name: Dataset
+  url: https://netsim.seli.wh.rnd.internal.ericsson.com/restsim/Dataset.tar
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: true
+  # Ingress class name indicates which ingress controller instance will consume
+  # the ingress resource. Required for HTTP traffic separation
+  #ingressClass: ff-ingress-class
+  ingressClass: ""
+  annotations: {}
+  # DNS name of the service.
+  host: "restsim.hart171.rnd.gic.ericsson.se"
+  tls:
+    # If TLS cannot be terminating at Ingress controller, setting the parameter
+    # will bypass the traffic and TLS will be terminated at the backend service.
+    passthrough: false
+    secretName: ""
+
+resources:
+  restsim:
+    limits:
+      cpu: "100m"
+      memory: "400Mi"
+      ephemeral-storage: "400Mi"
+    requests:
+      cpu: "2m"
+      memory: "4Mi"
+      ephemeral-storage: "4Mi"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity: "soft"
+
+env:
+
+  metrics:
+    port: 9798
+  # Tracing configuration
+  trace:
+    ## Control enabling of tracing, default false
+    enabled: false
+    ## tags, key value pairs. The tags will be applied to the tracer and will be shown in UI process section.
+    ## Example: service=service-a, version=1.0.1
+    tags:
+    # Only supports jaeger exporter
+    agent:
+      host: eric-dst-agent
+      port: 6831
+    sampler:
+      # Allowed values:
+      # always_on,
+      # always_off,
+      # traceidratio
+      # parentbased_always_off,
+      # parentbased_always_on,
+      # parentbased_traceidratio
+      # jaeger_remote
+      # , parentbased_jaeger_remote
+      # Mirrors OTEL_TRACES_SAMPLER
+      type: always_on
+      # Mirrors OTEL_TRACES_SAMPLER_ARG
+      # The value dependents on the type
+      # For traceidratio -> float in [ 0.0 - 1 ]
+      # For jaeger_remote -> endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25
+      # See, https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md
+      #  Examples:
+      #  type: traceidratio
+      #  args: 0.9
+      #  type: jaeger_remote
+      #  args: "endpoint=http://eric-dst-agent:5778,pollingIntervalMs,initialSamplingRate=1"
+      args: 1
+    logLevel: info
+
+podDisruptionBudget:
+  minAvailable: 50%
+
+# custom labels
+labels: {}
+
+terminationGracePeriodSeconds: 30
+
+probes:
+  maincontainer:
+    livenessProbe:
+      initialDelaySeconds: 1
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+
+podPriority:
+  priorityClassName: ""

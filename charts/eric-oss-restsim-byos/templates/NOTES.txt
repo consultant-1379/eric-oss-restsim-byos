@@ -1,0 +1,15 @@
+{{- if .Values.ingress.enabled }}
+Get the application URL by:
+
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/byos-buildmanager
+
+{{- else if contains "LoadBalancer" .Values.service.type }}
+Get the application URL by running these commands:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "eric-oss-byos-buildmanager.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+
+  kubectl port-forward $POD_NAME 8080:8080
+
+  http://127.0.0.1:8080
+
+{{- end }}

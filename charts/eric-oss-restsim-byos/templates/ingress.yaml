@@ -1,0 +1,30 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "eric-oss-byos-buildmanager.name" . }}
+  labels:
+{{- include "eric-oss-byos-buildmanager.labels" . | indent 4 }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.ingress.hostname | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "eric-oss-byos-buildmanager.name" . }}
+                port:
+                  number: {{ .Values.service.port }}
+          - path: /upload
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: eric-oss-byos-postgres
+                port:
+                  number: 5321
+{{- end }}

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eric-oss-byos-buildmanager.name" . }}
+  labels:
+{{- include "eric-oss-byos-buildmanager.labels" . | indent 4 }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+{{- if .Values.global }}
+  {{- if .Values.global.internalIPFamily }}
+  ipFamilies: [{{ .Values.global.internalIPFamily }}]
+  {{- end }}
+{{- end }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "eric-oss-byos-buildmanager.name" . }}
+    app.kubernetes.io/instance: {{ include "eric-oss-byos-buildmanager.name" . }}

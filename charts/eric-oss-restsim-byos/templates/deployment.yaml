@@ -1,0 +1,75 @@
+{{- $g := fromJson (include "eric-oss-byos-buildmanager.global" .) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eric-oss-byos-buildmanager.name" . }}
+  labels:
+{{- include "eric-oss-byos-buildmanager.labels" . | indent 4 }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "eric-oss-byos-buildmanager.name" . }}
+      app.kubernetes.io/instance: {{ include "eric-oss-byos-buildmanager.name" . }}
+  template:
+    metadata:
+      labels:
+{{- include "eric-oss-byos-buildmanager.labels" . | indent 8 }}
+      annotations:
+        {{- $commonAnn := include "eric-oss-byos-buildmanager.annotations" . | fromYaml -}}
+        {{- include "eric-oss-byos-buildmanager.mergeAnnotations" (dict "location" .Template.Name "sources" (list $commonAnn )) | trim | nindent 8 }}
+    spec:
+    {{- if .Values.podPriority }}
+    {{- if .Values.podPriority.priorityClassName }}
+      priorityClassName: {{ .Values.podPriority.priorityClassName | quote }}
+    {{- end }}
+    {{- end }}
+      serviceAccountName: {{ include "eric-oss-byos-buildmanager.name" . }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: restsim
+          image: armdocker.rnd.ericsson.se/proj_oss_releases/enm/byos_release:v44
+          command: ["/eric-oss-byos-release"]
+          args: [ {{ .Values.module | quote}} ]
+          imagePullPolicy: Always 
+          readinessProbe:
+            exec:
+                command:
+                - sh
+                - -c
+                - echo "wait for 150 seconds to bring up the database"
+            initialDelaySeconds: {{ .Values.probes.maincontainer.readinessProbe.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.maincontainer.readinessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.probes.maincontainer.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.probes.maincontainer.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.probes.maincontainer.readinessProbe.timeoutSeconds }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources.restsim | nindent 12 }}
+          volumeMounts:
+          - name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+            mountPath: /etc/config/
+            #  subpath: file.conf
+      volumes:
+        - name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+          configMap:
+              name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+              items:
+                - key: "data.conf"
+                  path: "data.conf"
+      {{- if include "eric-oss-byos-buildmanager.pullSecrets" . }}
+      imagePullSecrets:
+        - name: {{ template "eric-oss-byos-buildmanager.pullSecrets" . }}
+      {{- end }}
+      {{- if (or .Values.nodeSelector $g.nodeSelector) }}
+      nodeSelector:
+        {{- include "eric-oss-byos-buildmanager.nodeSelector" . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 6 }}
+    {{- end }}

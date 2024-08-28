@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eric-oss-byos-postgres
+  labels:
+    app.kubernetes.io/name: byos-postgres
+    app.kubernetes.io/instance: {{ .Release.Name }} # Sets service name
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  type: LoadBalancer # Sets service type
+{{- if .Values.global }}
+  {{- if .Values.global.internalIPFamily }}
+  ipFamilies: [{{ .Values.global.internalIPFamily }}]
+  {{- end }}
+{{- end }}
+  ports:
+    - port: 5432
+      name: pg
+      targetPort: 5432
+    - port: 5321
+      name: http
+      targetPort: 5321 # Sets port to run the postgres application
+  selector:
+    app.kubernetes.io/name: byos-postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}

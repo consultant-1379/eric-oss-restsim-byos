@@ -1,0 +1,15 @@
+{{- if eq (include "eric-oss-byos-buildmanager.roleBinding" .) "true" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "eric-oss-byos-buildmanager.name" . }}-psp-rolebinding
+  labels: {{- include "eric-oss-byos-buildmanager.labels" . | trim | nindent 4 }}
+  annotations: {{- include "eric-oss-byos-buildmanager.annotations" . | trim | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "eric-oss-byos-buildmanager.securityPolicyReference" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "eric-oss-byos-buildmanager.name" . }}
+{{- end -}}

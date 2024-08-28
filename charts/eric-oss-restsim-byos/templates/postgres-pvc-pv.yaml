@@ -1,0 +1,36 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: eric-oss-byos-postgres-pv-volume  # Sets PV's name
+  labels:
+    type: local
+    app.kubernetes.io/name: byos-postgres
+    app.kubernetes.io/instance : {{ .Release.Name }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: manual
+  capacity:
+    storage: {{ .Values.persistentVolumeClaim.size }} # Sets PV Volume
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/byos"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: eric-oss-byos-postgres-pv-claim  # Sets name of PVC
+  labels:
+    app.kubernetes.io/name: byos-postgres
+    app.kubernetes.io/instance : {{ .Release.Name }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany  # Sets read and write access
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolumeClaim.size }}  # Sets volume size

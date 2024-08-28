@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eric-oss-byos-builder
+  labels:
+    app.kubernetes.io/name: byos-builder
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+{{- include "eric-oss-byos-buildmanager.annotations" . | indent 4 }}
+  # Sets Deployment name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: byos-builder
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: byos-builder
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+          {{- $commonAnn := include "eric-oss-byos-buildmanager.annotations" . | fromYaml -}}
+          {{- include "eric-oss-byos-buildmanager.mergeAnnotations" (dict "location" .Template.Name "sources" (list $commonAnn )) | trim | nindent 8 }}
+    spec:
+    {{- if .Values.podPriority }}
+    {{- if .Values.podPriority.priorityClassName }}
+      priorityClassName: {{ .Values.podPriority.priorityClassName | quote }}
+    {{- end }}
+    {{- end }}
+      containers:
+        - name: byos-builder
+          image: armdocker.rnd.ericsson.se/proj_oss_releases/enm/restsim_byos_release:v69
+          ports:
+            - containerPort: 8080  # Exposes container port
+          imagePullPolicy: {{ template "eric-oss-byos-buildmanager.registryImagePullPolicy" . }}
+          envFrom:
+            - configMapRef:
+                name: eric-oss-byos-postgres-config
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: dockersock
+            - mountPath: /usr/bin/docker
+              name: docker
+            - name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+              mountPath: /etc/config/
+             # subpath: file.conf
+      volumes:
+        - name: docker
+          hostPath:
+           path: /usr/bin/docker
+        - name: dockersock
+          hostPath:
+           path: /var/run/docker.sock
+        - name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+          configMap:
+              name: {{ include "eric-oss-byos-buildmanager.name" . }}-app-configmap
+              items:
+                - key: "data.conf"
+                  path: "data.conf"
+      initContainers:
+        - name: docker-permission
+          image: busybox:1.28
+          command:
+          - sh
+          - -c
+          - "chmod 7777 /var/run/docker.sock"
+          volumeMounts:
+          - mountPath: /var/run/docker.sock
+            name: dockersock
+      {{- if include "eric-oss-byos-buildmanager.pullSecrets" . }}
+      imagePullSecrets:
+        - name: {{ template "eric-oss-byos-buildmanager.pullSecrets" . }}
+      {{- end }}
